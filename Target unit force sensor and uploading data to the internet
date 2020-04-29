@@ -1,0 +1,105 @@
+// Robo India Tutorial 
+// Simple code upload the tempeature and humidity data using thingspeak.com
+// Hardware: NodeMCU,DHT11
+// Including library for dht
+
+#include <ESP8266WiFi.h>
+ int forcePin = A0;
+int fsrADC;
+const float VCC = 3.28; // Measured voltage of Sparkfun 3.3v
+const float R_DIV = 9788.0; // Measured resistance of 10k resistor
+String apiKey = "YUUFL6QARM1DE374";     //  Enter your Write API key from ThingSpeak
+
+const char *ssid =  "bibz";     // replace with your wifi ssid and wpa2 key
+const char *pass =  "bibingeorge";
+const char* server = "api.thingspeak.com";
+ 
+int ledPin=13;
+WiFiClient client;
+ 
+void setup() 
+{
+  pinMode(ledPin, OUTPUT);
+  digitalWrite(ledPin, LOW);
+       Serial.begin(115200);
+       delay(10);
+      
+ 
+       Serial.println("Connecting to ");
+       Serial.println(ssid);
+ 
+ 
+       WiFi.begin(ssid, pass);
+ 
+      while (WiFi.status() != WL_CONNECTED) 
+     {
+            delay(500);
+            Serial.print(".");
+     }
+      Serial.println("");
+      Serial.println("WiFi connected");
+ 
+}
+ 
+void loop() 
+{
+   fsrADC = analogRead(forcePin);
+    if (fsrADC != 0) // If the analog reading is non-zero
+  {
+    // Use ADC reading to calculate voltage:
+    float fsrV = fsrADC * VCC / 1023.0;
+    // Use voltage and static resistor value to
+    // calculate FSR resistance:
+    float fsrR = R_DIV * (VCC / fsrV - 1.0);
+    Serial.println("Resistance: " + String(fsrR) + " ohms");
+    // Guesstimate force based on slopes in figure 3 of
+    // FSR datasheet:
+    float force;
+    float fsrG = 1.0 / fsrR; // Calculate conductance
+    // Break parabolic curve down into two linear slopes:
+    if (fsrR <= 600)
+      force = (fsrG - 0.00075) / 0.00000032639;
+    else
+      force =  fsrG / 0.000000642857;
+    Serial.println("Force: " + String(force) + " g");
+    if(force>1.50)
+    {
+  digitalWrite(ledPin, HIGH);
+  delay(2000); 
+  digitalWrite(ledPin, LOW);
+ 
+                         if (client.connect(server,80))   //   "184.106.153.149" or api.thingspeak.com
+                      {  
+                            
+                             String postStr = apiKey;
+                             
+                             postStr +="&field2=";
+                             postStr += String(100);
+                             postStr += "\r\n\r\n";
+ 
+                             client.print("POST /update HTTP/1.1\n");
+                             client.print("Host: api.thingspeak.com\n");
+                             client.print("Connection: close\n");
+                             client.print("X-THINGSPEAKAPIKEY: "+apiKey+"\n");
+                             client.print("Content-Type: application/x-www-form-urlencoded\n");
+                             client.print("Content-Length: ");
+                             client.print(postStr.length());
+                             client.print("\n\n");
+                             client.print(postStr);
+                             Serial.println("%. Send to Thingspeak.");
+                        }
+          client.stop();
+ 
+          Serial.println("Waiting...");
+ 
+  
+  // thingspeak needs minimum 15 sec delay between updates, i've set it to 30 seconds
+  delay(8000);
+    }
+
+     else
+  {
+  digitalWrite(ledPin, LOW); 
+    }
+  }
+}
