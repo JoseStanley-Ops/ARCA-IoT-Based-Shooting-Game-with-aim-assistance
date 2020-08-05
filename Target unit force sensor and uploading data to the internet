@@ -1,8 +1,3 @@
-// Robo India Tutorial 
-// Simple code upload the tempeature and humidity data using thingspeak.com
-// Hardware: NodeMCU,DHT11
-// Including library for dht
-
 #include <ESP8266WiFi.h>
  int forcePin = A0;
 int fsrADC;
