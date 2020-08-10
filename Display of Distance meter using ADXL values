@@ -300,28 +300,7 @@ double xAngle = atan( xAccl / (sqrt(square(yAccl) + square(zAccl))));
 //Serial.print("\nX= ");  
 
 //Serial.print(xAngle);  
-//FORCE..........................................................
-fsrADC = analogRead(forcePin);
-    if (fsrADC != 0) // If the analog reading is non-zero
-  {
-    // Use ADC reading to calculate voltage:
-    float fsrV = fsrADC * VCC / 1023.0;
-    // Use voltage and static resistor value to
-    // calculate FSR resistance:
-    float fsrR = R_DIV * (VCC / fsrV - 1.0);
-    Serial.println("Resistance: " + String(fsrR) + " ohms");
-    // Guesstimate force based on slopes in figure 3 of
-    // FSR datasheet:
-    float force;
-    float fsrG = 1.0 / fsrR; // Calculate conductance
-    // Break parabolic curve down into two linear slopes:
-    if (fsrR <= 600)
-      force = (fsrG - 0.00075) / 0.00000032639;
-    else
-      force =  fsrG / 0.000000642857;
-    Serial.println("Force: " + String(force) + " g");
-    Serial.println();
-    //...................................................................
+
      sprintf(dataString,"%02X",force); // convert a value to hexa 
   Serial.println(dataString);   // send the data
 display.setTextSize(1);
